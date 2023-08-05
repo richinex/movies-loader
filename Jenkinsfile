@@ -1,5 +1,39 @@
+// def imageName = 'richinex/movies-loader'
+// def registry = "${env.ACCOUNT_ID}.dkr.ecr.${env.REGION}.amazonaws.com"
+// def region = env.REGION // Updating the region here
+
+// node('workers'){
+//     stage('Checkout'){
+//         checkout scm
+//     }
+
+//     stage('Unit Tests'){
+//         def imageTest= docker.build("${imageName}-test", "-f Dockerfile.test .")
+//         imageTest.inside{
+//             sh "python test_main.py"
+//         }
+//     }
+
+//     stage('Build'){
+//         docker.build(imageName)
+//     }
+
+//     stage('Push'){
+//     sh "aws ecr get-login-password --region ${region} | docker login --username AWS --password-stdin ${registry}"
+
+//     if (env.BRANCH_NAME == 'develop') {
+//         sh "docker tag ${imageName} ${registry}/${imageName}:develop"
+//         sh "docker push ${registry}/${imageName}:develop"
+//     }
+// }
+
+// }
+
+
 def imageName = 'richinex/movies-loader'
-def registry = "${env.ACCOUNT_ID}.dkr.ecr.${env.REGION}.amazonaws.com"
+def dockerHubUsername = env.DOCKERHUB_USERNAME
+def dockerHubPassword = env.DOCKERHUB_PASSWORD
+def ecrRegistry = "${env.ACCOUNT_ID}.dkr.ecr.${env.REGION}.amazonaws.com"
 def region = env.REGION // Updating the region here
 
 node('workers'){
@@ -18,13 +52,20 @@ node('workers'){
         docker.build(imageName)
     }
 
-    stage('Push'){
-    sh "aws ecr get-login-password --region ${region} | docker login --username AWS --password-stdin ${registry}"
+    stage('Push to ECR'){
+        sh "aws ecr get-login-password --region ${region} | docker login --username AWS --password-stdin ${ecrRegistry}"
+        if (env.BRANCH_NAME == 'develop') {
+            sh "docker tag ${imageName} ${ecrRegistry}/${imageName}:develop"
+            sh "docker push ${ecrRegistry}/${imageName}:develop"
+        }
+    }
 
-    if (env.BRANCH_NAME == 'develop') {
-        sh "docker tag ${imageName} ${registry}/${imageName}:develop"
-        sh "docker push ${registry}/${imageName}:develop"
+    stage('Push to DockerHub'){
+            sh "docker login -u ${dockerHubUsername} -p ${dockerHubPassword}"
+            if (env.BRANCH_NAME == 'develop') {
+                sh "docker tag ${imageName} ${dockerHubUsername}/${imageName}:develop"
+                sh "docker push ${dockerHubUsername}/${imageName}:develop"
+            }
     }
 }
 
-}
