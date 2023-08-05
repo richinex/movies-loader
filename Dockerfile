@@ -1,7 +1,7 @@
 FROM python:3.7.3
-LABEL MAINTAINER mlabouardy
+LABEL MAINTAINER richinex
 
-WORKDIR /app 
+WORKDIR /app
 
 COPY requirements.txt .
 
