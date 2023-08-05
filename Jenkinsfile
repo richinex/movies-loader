@@ -2,6 +2,7 @@ def imageName = 'richinex/movies-loader'
 def registry = "${env.ACCOUNT_ID}.dkr.ecr.${env.REGION}.amazonaws.com"
 def region = 'REGION'
 
+
 node('workers'){
     stage('Checkout'){
         checkout scm
